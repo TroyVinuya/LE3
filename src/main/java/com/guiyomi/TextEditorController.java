@@ -10,14 +10,12 @@ import javafx.stage.WindowEvent;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 public class TextEditorController extends Application {
     private File currentFile = null;
     private TextArea textArea = new TextArea();
     private boolean isModified = false;
-    private static final String BACKUP_FILE = "backup.txt";
 
     @Override
     public void start(Stage primaryStage) {
@@ -118,7 +116,6 @@ public class TextEditorController extends Application {
             }
         });
 
-        restoreBackup();
     }
 
     private void saveFile(Stage stage) {
@@ -135,10 +132,19 @@ public class TextEditorController extends Application {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(currentFile))) {
                 writer.write(textArea.getText());
                 isModified = false;
+
+                showSuccessDialog();
             } catch (IOException e) {
                 showAlert("Error", "Unable to save file");
             }
         }
+    }
+    private void showSuccessDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("File Save");
+        alert.setHeaderText(null);
+        alert.setContentText("File was saved successfully!");
+        alert.showAndWait();
     }
 
 
@@ -150,36 +156,5 @@ public class TextEditorController extends Application {
         alert.showAndWait();
     }
 
-    private void backupFile() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(BACKUP_FILE))) {
-            writer.write(textArea.getText());
-        } catch (IOException e) {
-            showAlert("Error", "Unable to create backup");
-        }
-    }
-
-    private void restoreBackup() {
-        File backup = new File(BACKUP_FILE);
-        if (backup.exists()) {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Restore Backup");
-            alert.setHeaderText(null);
-            alert.setContentText("A backup was found. Do you want to restore it?");
-            ButtonType restoreButton = new ButtonType("Restore");
-            ButtonType discardButton = new ButtonType("Discard");
-
-            alert.getButtonTypes().setAll(restoreButton, discardButton);
-            Optional<ButtonType> result = alert.showAndWait();
-
-            if (result.isPresent() && result.get() == restoreButton) {
-                try {
-                    textArea.setText(Files.readString(Paths.get(BACKUP_FILE)));
-                    isModified = false;
-                } catch (IOException e) {
-                    showAlert("Error", "Unable to restore backup");
-                }
-            }
-        }
-    }
 
 }
