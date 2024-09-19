@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<TitledPane animated="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="200.0" text="Text Editor" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.guiyomi.EditorController">
+  <content>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+         <children>
+            <Button fx:id="NewBtn" layoutX="68.0" layoutY="31.0" mnemonicParsing="false" onAction="#handleNewFile" text="New File" />
+            <Button fx:id="LoadBtn" layoutX="67.0" layoutY="72.0" mnemonicParsing="false" onAction="#handleLoadFile" text="Load File" />
+            <Button fx:id="QuitBtn" layoutX="79.0" layoutY="111.0" mnemonicParsing="false" onAction="#handleQuit" text="Quit" />
+            <Label layoutX="27.0" layoutY="168.0" text="Last file edited:" />
+            <Label fx:id="Label" layoutX="116.0" layoutY="168.0" text=" " />
+         </children></AnchorPane>
+  </content>
+</TitledPane>
