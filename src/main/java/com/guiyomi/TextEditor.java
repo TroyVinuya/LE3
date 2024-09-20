@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import javafx.scene.Scene;
@@ -28,6 +29,8 @@ import javafx.stage.WindowEvent;
 
 public class TextEditor {
 
+    private static final String BACKUP_FILE_PATH = "backup.txt";
+
     private Stage stage;
     private TextArea textArea;
     private File currentFile;
@@ -48,6 +51,8 @@ public class TextEditor {
         if (file != null) {
             loadFile(file);
             this.currentFile = file;
+        } else {
+            checkForBackup(); 
         }
 
         Button saveButton = new Button("Save");
@@ -76,7 +81,10 @@ public class TextEditor {
 
         this.stage.setOnCloseRequest(this::handleCloseRequest);
 
-        this.textArea.textProperty().addListener((observable, oldValue, newValue) -> isModified = true);
+        this.textArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            isModified = true;
+            saveBackup(); 
+        });
 
         if (file == null) {
             this.stage.setTitle("New File");
@@ -98,7 +106,7 @@ public class TextEditor {
         textArea.setStyle("-fx-text-fill: #" + selectedColor.toString().substring(2, 8) + ";");
     }
 
-    void loadFile(File file) {
+    private void loadFile(File file) {
         try {
             String content = new String(Files.readAllBytes(file.toPath()));
             this.textArea.setText(content);
@@ -120,7 +128,7 @@ public class TextEditor {
                 this.isModified = false;
                 this.stage.setTitle(this.currentFile.getName());
                 showSuccessDialog();
-
+                deleteBackup();  // Delete backup after saving
                 controller.updateLastEditedFileLabel(this.currentFile.getName());
             } catch (IOException e) {
                 showAlert("Error", "Unable to save file.");
@@ -150,6 +158,39 @@ public class TextEditor {
         }
     }
 
+    private void saveBackup() {
+        try (FileWriter writer = new FileWriter(BACKUP_FILE_PATH)) {
+            writer.write(this.textArea.getText());
+        } catch (IOException e) {
+            showAlert("Error", "Unable to create backup.");
+        }
+    }
+
+    private void checkForBackup() {
+        File backupFile = new File(BACKUP_FILE_PATH);
+        if (backupFile.exists()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Restore Backup");
+            alert.setHeaderText("A backup of unsaved changes was found.");
+            alert.setContentText("Do you want to restore your last session?");
+            ButtonType restoreButton = new ButtonType("Restore");
+            ButtonType ignoreButton = new ButtonType("Ignore");
+            alert.getButtonTypes().setAll(restoreButton, ignoreButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == restoreButton) {
+                loadFile(backupFile);  
+            }
+        }
+    }
+
+    private void deleteBackup() {
+        try {
+            Files.deleteIfExists(Paths.get(BACKUP_FILE_PATH));
+        } catch (IOException e) {
+            showAlert("Error", "Unable to delete backup.");
+        }
+    }
 
     private void showSuccessDialog() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
